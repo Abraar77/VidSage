@@ -1,4 +1,9 @@
 
+# Database / application history
+.history/
+
+backend/history/
+
 # ==============================
 # Environment variables & secrets
 # ==============================

@@ -1,6 +1,9 @@
 
-import { useState,useEffect } from 'react'
+import { useState,useEffect,useRef } from 'react'
 import { Menu, X, Plus, Play, MessageSquare } from 'lucide-react'
+
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 import { useDispatch, useSelector } from 'react-redux'
 import { addMessage, clearMessages,
@@ -48,6 +51,7 @@ function App() {
   const [url, setUrl] = useState('')
   const [question, setQuestion] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const chatContainerRef = useRef(null)
 
   const dispatch = useDispatch()
   
@@ -78,6 +82,17 @@ function App() {
   useEffect(() => {
   dispatch(fetchConversationsThunk());
 }, [dispatch]);
+
+useEffect(() => {
+  const container = chatContainerRef.current
+
+  if (container) {
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    })
+  }
+}, [messages, loading])
   
   const handleNewChat = () => {
     dispatch(clearMessages())
@@ -370,7 +385,10 @@ const handleSendMessage = async (e) => {
                 Ask about this video
               </h3>
 
-              <div className="w-full min-h-48 max-h-[450px] overflow-y-auto bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-5 space-y-4">
+              <div
+                ref={chatContainerRef}
+                className="w-full min-h-48 max-h-[450px] overflow-y-auto bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-5 space-y-4"
+>
 
                 {messages.length === 0 ? (
                   <p className="text-zinc-500 text-center text-sm mt-12">
@@ -390,7 +408,34 @@ const handleSendMessage = async (e) => {
                         {message.role === "user" ? "You" : "AI Assistant"}
                       </p>
 
-                      {message.content}
+                      {message.role === "assistant" ? (
+                      <div className="
+                        text-sm sm:text-base leading-7
+                        [&_h1]:text-xl [&_h1]:font-bold [&_h1]:my-3
+                        [&_h2]:text-lg [&_h2]:font-bold [&_h2]:my-3
+                        [&_h3]:text-base [&_h3]:font-semibold [&_h3]:my-2
+                        [&_p]:my-2
+                        [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2
+                        [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2
+                        [&_li]:my-1
+                        [&_strong]:font-bold
+                        [&_a]:text-blue-400 [&_a]:underline
+                        [&_blockquote]:border-l-4 [&_blockquote]:border-zinc-500
+                        [&_blockquote]:pl-4 [&_blockquote]:italic
+                        [&_pre]:bg-black [&_pre]:p-4 [&_pre]:rounded-lg
+                        [&_pre]:overflow-x-auto [&_pre]:my-3
+                        [&_code]:bg-black/50 [&_code]:px-1 [&_code]:rounded
+                        [&_table]:w-full [&_table]:border-collapse
+                        [&_th]:border [&_th]:border-zinc-600 [&_th]:p-2
+                        [&_td]:border [&_td]:border-zinc-700 [&_td]:p-2
+                      ">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    )}
                     </div>
                 ))
                 )}

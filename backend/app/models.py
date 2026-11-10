@@ -14,6 +14,12 @@ class Conversation(Base):
 
     video_id = Column(String(50), nullable=True)
 
+    # Stores the rolling summary of this conversation
+    summary = Column(Text, nullable=True)
+
+    # Tracks the last message included in the rolling summary
+    summary_through_message_id = Column(Integer, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     updated_at = Column(

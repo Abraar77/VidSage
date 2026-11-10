@@ -103,9 +103,54 @@ prompt = ChatPromptTemplate.from_messages([
     ("human", "{question}")
 ])
 
+summary_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+        You are a conversation memory summarization assistant.
+
+        Your job is to maintain a concise, accurate,
+        continuously updated summary of a conversation.
+
+        You will receive:
+        1. The previous conversation summary.
+        2. New completed conversation turns.
+
+        Instructions:
+        - Preserve important facts and explanations.
+        - Preserve user preferences and corrections.
+        - Preserve decisions and conclusions.
+        - Preserve unresolved questions.
+        - Retain important technical terms and names.
+        - Remove repetition and irrelevant details.
+        - Never invent information.
+        - Do not answer the user's questions.
+        - Produce a self-contained updated summary.
+
+        Previous summary:
+        {previous_summary}
+        """
+    ),
+    ("human", "New conversation turns:\n{new_turns}")
+])
+
 
 # Create the RAG chain
 rag_chain = prompt | llm | StrOutputParser()
+
+summary_chain = summary_prompt | llm | StrOutputParser()
+
+def generate_conversation_summary(
+    previous_summary: str,
+    new_turns: str
+) -> str:
+
+    updated_summary = summary_chain.invoke({
+        "previous_summary": previous_summary or "No previous summary.",
+        "new_turns": new_turns
+    })
+
+    return updated_summary.strip()
 
 
 def answer_question(

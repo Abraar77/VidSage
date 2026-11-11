@@ -3,15 +3,74 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from app.schemas.chat import ChatRequest
-from app.services.rag import answer_question
+from app.services.rag import (
+    answer_question,
+    generate_conversation_summary
+)
 from app.database import get_db
 from app.models import Conversation, Message
+from app.services.vector_store import store_conversation_turn
 
 router = APIRouter(
     prefix="/api/chat",
     tags=["Chat"]
 )
 
+def update_rolling_summary(db: Session, conversation: Conversation):
+
+    # Get messages that haven't been included in the summary
+    unsummarized_messages = db.query(Message).filter(
+        Message.conversation_id == conversation.id,
+        Message.id > (conversation.summary_through_message_id or 0)
+    ).order_by(Message.id.asc()).all()
+
+    # Group messages into complete user-assistant turns
+    turns = []
+    current_user_message = None
+
+    for message in unsummarized_messages:
+
+        if message.role == "user":
+
+            # Start a new turn only if no unanswered question exists
+            if current_user_message is None:
+                current_user_message = message
+
+        elif message.role == "assistant" and current_user_message:
+
+            turns.append([
+                current_user_message,
+                message
+            ])
+
+            current_user_message = None
+
+    # We need at least 10 complete turns
+    if len(turns) < 10:
+        return
+
+    # Process the first 10 unsummarized turns
+    turns_to_summarize = turns[:10]
+
+    # Convert turns into readable text
+    new_turns = "\n\n".join(
+        f"User: {turn[0].content}\nAssistant: {turn[1].content}"
+        for turn in turns_to_summarize
+    )
+
+    # Generate updated summary
+    updated_summary = generate_conversation_summary(
+        previous_summary=conversation.summary or "",
+        new_turns=new_turns
+    )
+
+    # Save summary and checkpoint
+    conversation.summary = updated_summary
+    conversation.summary_through_message_id = (
+        turns_to_summarize[-1][-1].id
+    )
+
+    db.commit()
 
 @router.post("/ask")
 def ask_question(
@@ -74,11 +133,30 @@ def ask_question(
         db.add(user_message)
         db.commit()
 
+        print("\n========== CHAT DEBUG ==========")
+
+        print("Conversation ID:", conversation.id)
+        print("Video ID:", request.video_id)
+        print("Current Question:", request.question)
+
+        print("\nPrevious Conversation History:")
+
+        for message in chat_history:
+            print(f"{message['role']}: {message['content']}")
+
+        print(f"number of convo in chat history:{len(chat_history)}")     
+
+        print("================================\n")
+
+        
+        
         # 5. Generate answer using RAG + conversation history
         answer = answer_question(
             video_id=request.video_id,
+            conversation_id=conversation.id,
             question=request.question,
-            chat_history=chat_history
+            chat_history=chat_history,
+            conversation_summary=conversation.summary or ""
         )
 
         # 6. Save Gemini's response
@@ -90,6 +168,34 @@ def ask_question(
 
         db.add(assistant_message)
         db.commit()
+
+        db.refresh(assistant_message)
+
+        # Store the completed Q&A turn in ChromaDB
+        try:
+            store_conversation_turn(
+                conversation_id=conversation.id,
+                video_id=request.video_id,
+                user_message_id=user_message.id,
+                assistant_message_id=assistant_message.id,
+                question=request.question,
+                answer=answer
+            )
+
+            print("Conversation memory stored successfully!")
+
+        except Exception as memory_error:
+            print(f"Conversation memory storage failed: {memory_error}")
+
+        try:
+            update_rolling_summary(
+                db=db,
+                conversation=conversation
+            )
+
+        except Exception as summary_error:
+                db.rollback()
+                print(f"Rolling summary update failed: {summary_error}")
 
         # 7. Return response
         return {

@@ -4,7 +4,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
 
-from app.services.vector_store import vector_store
+from app.services.vector_store import (
+    vector_store,
+    retrieve_conversation_memories
+)
+
 
 
 # Initialize Gemini LLM
@@ -75,33 +79,58 @@ def rewrite_question(question: str, chat_history: list = None) -> str:
     return standalone_question.strip()
 
 # Create prompt template
+
+
 prompt = ChatPromptTemplate.from_messages([
     (
         "system",
         """
         You are a helpful YouTube video assistant.
 
-        Answer the user's question using ONLY the transcript context
-        provided below.
+        You will receive four types of context:
 
-        Use the conversation history to understand follow-up questions
-        and references to earlier messages.
+        1. Transcript Context:
+           Relevant information retrieved from the YouTube video.
 
-        Conversation history is for understanding the user's intent.
-        The transcript context is the source of factual answers.
+        2. Older Conversation Memories:
+           Relevant exchanges retrieved from ChromaDB.
 
-        If the answer is not available in the transcript, say:
-        "I couldn't find the answer in this video's transcript."
+        3. Recent Conversation History:
+           The latest messages in the current conversation.
 
-        Keep your answers clear and informative.
+        4. Rolling Conversation Summary:
+           A compressed summary of older conversation exchanges.
+
+        Instructions:
+
+        - Use transcript context as the primary source
+          for factual information about the video.
+        - Use older memories and the rolling summary
+          to understand previous discussions.
+        - Use recent history to understand the current
+          discussion and references.
+        - Do not invent facts.
+        - Do not claim something was mentioned in the
+          transcript if it wasn't.
+        - If video information is unavailable in the
+          transcript, say so.
+        - Keep answers clear and informative.
 
         Transcript Context:
         {context}
+
+        Older Conversation Memories:
+        {memory_context}
+
+        Rolling Conversation Summary:
+        {summary}
         """
     ),
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{question}")
 ])
+
+
 
 summary_prompt = ChatPromptTemplate.from_messages([
     (
@@ -153,37 +182,65 @@ def generate_conversation_summary(
     return updated_summary.strip()
 
 
+
 def answer_question(
     video_id: str,
+    conversation_id: int,
     question: str,
-    chat_history: list = None
+    chat_history: list = None,
+    conversation_summary: str = ""
 ):
-    standalone_question=rewrite_question(
+    # 1. Rewrite the question using recent conversation history
+    standalone_question = rewrite_question(
         question,
         chat_history
     )
-    print(f"question: {question}")
-    print(f"standalone_question: {standalone_question}")
 
-    # Retrieve relevant chunks from ChromaDB
+    print(f"Original question: {question}")
+    print(f"Standalone question: {standalone_question}")
+
+    print("\n\n")
+
+    print("Rolling summary received:", bool(conversation_summary))
+
+    # 2. Retrieve relevant YouTube transcript chunks
     docs = vector_store.similarity_search(
         query=standalone_question,
         k=4,
         filter={"video_id": video_id}
     )
 
-    if not docs:
-        return "No relevant information found in this video."
+    # 3. Retrieve relevant older conversation memories
+    memory_docs = retrieve_conversation_memories(
+        query=standalone_question,
+        conversation_id=conversation_id,
+        k=5
+    )
 
-    # Combine retrieved chunks
+    # 4. Combine transcript chunks
     context = "\n\n".join(
         doc.page_content for doc in docs
     )
 
-    # Convert database messages into LangChain messages
+    if not context:
+        context = "No relevant transcript information was retrieved."
+
+    # 5. Combine older conversation memories
+    memory_context = "\n\n".join(
+        doc.page_content for doc in memory_docs
+    )
+
+    if not memory_context:
+        memory_context = "No relevant older conversation memories found."
+
+    print(f"Transcript chunks retrieved: {len(docs)}")
+    print(f"Conversation memories retrieved: {len(memory_docs)}")
+
+    # 6. Convert recent history into LangChain messages
     formatted_history = []
 
     for message in chat_history or []:
+
         if message["role"] == "user":
             formatted_history.append(
                 HumanMessage(content=message["content"])
@@ -194,11 +251,14 @@ def answer_question(
                 AIMessage(content=message["content"])
             )
 
-    # Generate answer using Gemini
+    # 7. Generate the final answer
     answer = rag_chain.invoke({
         "context": context,
+        "memory_context": memory_context,
+        "summary": conversation_summary or "No previous summary available.",
         "chat_history": formatted_history,
         "question": question
     })
 
     return answer
+

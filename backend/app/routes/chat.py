@@ -117,6 +117,7 @@ def ask_question(
         # 3. Convert database messages into dictionaries
         chat_history = [
             {
+                "id": message.id,
                 "role": message.role,
                 "content": message.content
             }
@@ -139,14 +140,14 @@ def ask_question(
         print("Video ID:", request.video_id)
         print("Current Question:", request.question)
 
-        print("\nPrevious Conversation History:")
+        # print("\nPrevious Conversation History:")
 
-        for message in chat_history:
-            print(f"{message['role']}: {message['content']}")
+        # for message in chat_history:
+        #     print(f"{message['role']}: {message['content']}")
 
-        print(f"number of convo in chat history:{len(chat_history)}")     
+        # print(f"number of convo in chat history:{len(chat_history)}")     
 
-        print("================================\n")
+        # print("================================\n")
 
         
         

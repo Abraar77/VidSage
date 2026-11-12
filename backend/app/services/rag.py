@@ -210,13 +210,29 @@ def answer_question(
         filter={"video_id": video_id}
     )
 
-    # 3. Retrieve relevant older conversation memories
+        # Extract assistant message IDs from recent history.
+    recent_document_ids = [
+        f"conversation_{conversation_id}_turn_{message['id']}"
+        for message in chat_history or []
+        if message["role"] == "assistant"
+    ]
+
     memory_docs = retrieve_conversation_memories(
         query=standalone_question,
         conversation_id=conversation_id,
+        exclude_document_ids=recent_document_ids,
         k=5
     )
 
+    print("Excluded document IDs:", recent_document_ids)
+
+    print(
+        "Retrieved document IDs:",
+        [
+            f"conversation_{conversation_id}_turn_{doc.metadata['assistant_message_id']}"
+            for doc in memory_docs
+        ]
+    )
     # 4. Combine transcript chunks
     context = "\n\n".join(
         doc.page_content for doc in docs

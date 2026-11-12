@@ -59,6 +59,8 @@ def store_conversation_turn(
     # Combine the question and answer into one document
     content = f"User: {question}\nAssistant: {answer}"
 
+    # Unique ID for each conversation turn
+    document_id = f"conversation_{conversation_id}_turn_{assistant_message_id}"
     # Create a LangChain Document
     document = Document(
         page_content=content,
@@ -66,12 +68,12 @@ def store_conversation_turn(
             "conversation_id": conversation_id,
             "video_id": video_id,
             "user_message_id": user_message_id,
-            "assistant_message_id": assistant_message_id
+            "assistant_message_id": assistant_message_id,
+            "document_id": document_id
         }
     )
 
-    # Unique ID for each conversation turn
-    document_id = f"conversation_{conversation_id}_turn_{assistant_message_id}"
+    
 
     # Store the document in ChromaDB
     conversation_vector_store.add_documents(
@@ -83,23 +85,49 @@ def store_conversation_turn(
     include=["documents", "metadatas"]
 )
 
-    print(f"\nchroma result{results}")
+    for index,id in enumerate(results["ids"]):
+        print(f"document_id {index}:\n{id}")
 
     return document_id
+
+
 
 
 
 def retrieve_conversation_memories(
     query: str,
     conversation_id: int,
+    exclude_document_ids: list = None,
     k: int = 5
 ):
-    results = conversation_vector_store.similarity_search(
+    excluded_ids = set(exclude_document_ids or [])
+
+    # Retrieve a larger, diverse set of candidate memories.
+    candidate_docs = conversation_vector_store.max_marginal_relevance_search(
         query=query,
-        k=k,
+        k=20,
+        fetch_k=50,
+        lambda_mult=0.5,
         filter={
             "conversation_id": conversation_id
         }
     )
 
-    return results
+    # Reconstruct document IDs using existing metadata.
+    filtered_docs = []
+
+    for doc in candidate_docs:
+        assistant_id = doc.metadata.get("assistant_message_id")
+
+        document_id = (
+            f"conversation_{conversation_id}_turn_{assistant_id}"
+            if assistant_id is not None
+            else None
+        )
+
+        if document_id not in excluded_ids:
+            filtered_docs.append(doc)
+
+    return filtered_docs[:k]
+
+

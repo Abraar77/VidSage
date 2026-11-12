@@ -127,7 +127,9 @@ def retrieve_conversation_memories(
 
         if document_id not in excluded_ids:
             filtered_docs.append(doc)
-
+    print("MMR candidates:", len(candidate_docs))
+    print("Excluded memories:", len(candidate_docs) - len(filtered_docs))
+    print("Final memories:", len(filtered_docs))
     return filtered_docs[:k]
 
 

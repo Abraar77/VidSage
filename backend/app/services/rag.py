@@ -182,6 +182,10 @@ def generate_conversation_summary(
     return updated_summary.strip()
 
 
+def log_token_count(label: str, text: str):
+    token_count = llm.get_num_tokens(text or "")
+    print(f"{label}: {token_count} tokens")
+
 
 def answer_question(
     video_id: str,
@@ -266,6 +270,44 @@ def answer_question(
             formatted_history.append(
                 AIMessage(content=message["content"])
             )
+    
+    # Token count for each context component
+    log_token_count("Transcript context", context)
+    log_token_count("Conversation memories", memory_context)
+    log_token_count("Rolling summary", conversation_summary)
+    log_token_count(
+        "Recent chat history",
+        "\n".join(
+            f"{message['role']}: {message['content']}"
+            for message in (chat_history or [])
+        )
+    )
+    log_token_count("Current question", question)
+    log_token_count("Standalone question", standalone_question)   
+    
+    
+    # 7. Format the complete RAG prompt
+    formatted_prompt = prompt.format_prompt(
+        context=context,
+        memory_context=memory_context,
+        summary=conversation_summary or "No previous summary available.",
+        chat_history=formatted_history,
+        question=question
+    )
+
+    # Convert the complete prompt into text
+    prompt_text = formatted_prompt.to_string()
+
+    formated_contextual_prompt=contextualization_prompt.format_prompt(
+        chat_history=formatted_history,
+        question=question
+    )
+
+    contextual_prompt_text= formated_contextual_prompt.to_string()
+    log_token_count("contextual prompt text", contextual_prompt_text)
+
+    # Count total prompt tokens
+    log_token_count("Complete formatted RAG prompt", prompt_text)     
 
     # 7. Generate the final answer
     answer = rag_chain.invoke({

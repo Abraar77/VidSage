@@ -32,6 +32,8 @@ contextualization_prompt = ChatPromptTemplate.from_messages([
         - References to earlier explanations.
         - References to previously mentioned concepts.
         - Incomplete or ambiguous follow-up questions.
+        -use the summary to understand the entire picture
+        of the conversation-->{summary}
 
         Rules:
         1. Preserve the original meaning and intent.
@@ -53,7 +55,7 @@ contextualization_chain = (
     | StrOutputParser()
 )
 
-def rewrite_question(question: str, chat_history: list = None) -> str:
+def rewrite_question(question: str, chat_history: list = None, summary:str="") -> str:
 
     # Convert database messages into LangChain messages
     formatted_history = []
@@ -73,7 +75,8 @@ def rewrite_question(question: str, chat_history: list = None) -> str:
     # Generate a standalone question
     standalone_question = contextualization_chain.invoke({
         "chat_history": formatted_history,
-        "question": question
+        "question": question,
+        "summary": summary
     })
 
     return standalone_question.strip()
@@ -197,7 +200,8 @@ def answer_question(
     # 1. Rewrite the question using recent conversation history
     standalone_question = rewrite_question(
         question,
-        chat_history
+        chat_history,
+        conversation_summary
     )
 
     print(f"Original question: {question}")
@@ -300,7 +304,8 @@ def answer_question(
 
     formated_contextual_prompt=contextualization_prompt.format_prompt(
         chat_history=formatted_history,
-        question=question
+        question=question,
+        summary=conversation_summary or "No previous summary available."
     )
 
     contextual_prompt_text= formated_contextual_prompt.to_string()

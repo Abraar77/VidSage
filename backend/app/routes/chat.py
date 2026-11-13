@@ -109,7 +109,7 @@ def ask_question(
         # 2. Retrieve previous messages BEFORE saving current question
         previous_messages = db.query(Message).filter(
             Message.conversation_id == conversation.id
-        ).order_by(Message.id.desc()).limit(20).all()
+        ).order_by(Message.id.desc()).limit(10).all()
 
         # Reverse the messages to restore chronological order
         previous_messages.reverse()

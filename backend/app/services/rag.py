@@ -3,6 +3,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
+import time
+from langchain_core.runnables import RunnableParallel, RunnableLambda
 
 from app.services.vector_store import (
     vector_store,
@@ -172,6 +174,30 @@ rag_chain = prompt | llm | StrOutputParser()
 
 summary_chain = summary_prompt | llm | StrOutputParser()
 
+
+def retrieve_transcript(inputs):
+    return vector_store.similarity_search(
+        query=inputs["standalone_question"],
+        k=4,
+        filter={"video_id": inputs["video_id"]}
+    )
+
+
+def retrieve_memories(inputs):
+    return retrieve_conversation_memories(
+        query=inputs["standalone_question"],
+        conversation_id=inputs["conversation_id"],
+        exclude_document_ids=inputs["exclude_document_ids"],
+        k=5
+    )
+
+
+# Execute both retrieval operations concurrently
+retrieval_chain = RunnableParallel(
+    transcript=RunnableLambda(retrieve_transcript),
+    memories=RunnableLambda(retrieve_memories)
+)
+
 def generate_conversation_summary(
     previous_summary: str,
     new_turns: str
@@ -190,6 +216,7 @@ def log_token_count(label: str, text: str):
     print(f"{label}: {token_count} tokens")
 
 
+
 def answer_question(
     video_id: str,
     conversation_id: int,
@@ -197,11 +224,20 @@ def answer_question(
     chat_history: list = None,
     conversation_summary: str = ""
 ):
+
+    total_start = time.perf_counter()
+    
+    start = time.perf_counter()
     # 1. Rewrite the question using recent conversation history
     standalone_question = rewrite_question(
         question,
         chat_history,
         conversation_summary
+    )
+
+    print(
+        f"Contextualization time: "
+        f"{time.perf_counter() - start:.2f}s"
     )
 
     print(f"Original question: {question}")
@@ -210,13 +246,9 @@ def answer_question(
     print("\n\n")
 
     print("Rolling summary received:", bool(conversation_summary))
+    
+    
 
-    # 2. Retrieve relevant YouTube transcript chunks
-    docs = vector_store.similarity_search(
-        query=standalone_question,
-        k=4,
-        filter={"video_id": video_id}
-    )
 
         # Extract assistant message IDs from recent history.
     recent_document_ids = [
@@ -225,11 +257,22 @@ def answer_question(
         if message["role"] == "assistant"
     ]
 
-    memory_docs = retrieve_conversation_memories(
-        query=standalone_question,
-        conversation_id=conversation_id,
-        exclude_document_ids=recent_document_ids,
-        k=5
+    # Retrieve transcript chunks and conversation memories in parallel
+    retrieval_start = time.perf_counter()
+
+    retrieval_results = retrieval_chain.invoke({
+        "standalone_question": standalone_question,
+        "video_id": video_id,
+        "conversation_id": conversation_id,
+        "exclude_document_ids": recent_document_ids
+    })
+
+    docs = retrieval_results["transcript"]
+    memory_docs = retrieval_results["memories"]
+
+    print(
+        f"Parallel retrieval time: "
+        f"{time.perf_counter() - retrieval_start:.2f}s"
     )
 
     print("Excluded document IDs:", recent_document_ids)
@@ -312,7 +355,9 @@ def answer_question(
     log_token_count("contextual prompt text", contextual_prompt_text)
 
     # Count total prompt tokens
-    log_token_count("Complete formatted RAG prompt", prompt_text)     
+    log_token_count("Complete formatted RAG prompt", prompt_text)    
+    
+    start=time.perf_counter()
 
     # 7. Generate the final answer
     answer = rag_chain.invoke({
@@ -322,6 +367,16 @@ def answer_question(
         "chat_history": formatted_history,
         "question": question
     })
+
+    print(
+    f"Final generation time: "
+    f"{time.perf_counter() - start:.2f}s"
+)
+
+    print(
+        f"Total RAG time: "
+        f"{time.perf_counter() - total_start:.2f}s"
+    )
 
     return answer
 

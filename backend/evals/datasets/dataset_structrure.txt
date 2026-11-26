@@ -1,0 +1,54 @@
+TEST CASE
+│
+├── case_id
+├── annotation_status
+│
+├── source
+│   ├── platform
+│   ├── video_id
+│   ├── url
+│   ├── transcript_basis
+│   └── transcript_duration
+│
+├── task_type
+│
+├── input
+│   ├── video_id
+│   ├── question
+│   ├── chat_history
+│   └── conversation_summary
+│
+├── expected_behavior
+│
+├── reference_answer
+│
+├── required_facts
+│
+├── relevant_evidence
+|    └──evidence_id
+|    └──start_timestamp
+|    └──end_timestamp
+|    └──start_second
+|    └──end_second
+|    └──text
+|    └──supports_fact_ids
+│
+├── must_not_claim
+│
+├── annotation_notes
+│
+├── dataset_version
+│
+└── evaluation_scope
+
+
+Sourc:
+
+Field	Meaning
+platform	Where the video is hosted
+video_id	Identity of the original video
+url	Link to the source video
+transcript_basis	Which transcript was used to prepare the test
+scope	What information the evaluation is allowed to judge
+transcript_duration	Duration of the source transcript
+timestamps	Information about timestamp accuracy

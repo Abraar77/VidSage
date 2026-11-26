@@ -1,0 +1,167 @@
+[00:00] While Honeypot Wong was busy falling
+[00:02] head over leather jacket for a succulent
+[00:04] Chinese spy, these Chinese models are
+[00:06] excellent. Daria was putting the final
+[00:08] touches on his prep work for the
+[00:09] Anthropic IPO road show that started
+[00:11] yesterday. Unfortunately, it's coming at
+[00:13] a pretty rough time for Dr. Doomday. The
+[00:15] US midterms turned into a referendum on
+[00:18] data centers where voters made it clear
+[00:20] they hate them, and Wall Street
+[00:21] responded by panic selling every AI
+[00:23] stock it could find. That dragged
+[00:25] Anthropic's expected evaluation down
+[00:27] from 2 trillion in September to a mere 1
+[00:29] trillion today. So yesterday, Dollar
+[00:31] Store Daria gave investors something
+[00:33] else to look at by releasing Fable and
+[00:35] Mythos 5.2, which you'll never believe
+[00:37] are faster and cheaper than the versions
+[00:39] that just came out 2 months ago. During
+[00:41] testing, it built an entire operating
+[00:43] system starting from an empty folder. It
+[00:45] finished a math project in 30 hours that
+[00:47] Opus failed to finish, and it even
+[00:49] designed a working Tamagotchi. In
+[00:51] today's video, we'll look at everything
+[00:52] these new models can do and answer the
+[00:54] question I know you've all been
+[00:55] wondering, can it create an interactive
+[00:57] thoroughbred with an appropriate amount
+[00:59] of realness? It is November 10th, 2026,
+[01:02] and you're watching The Code Report. If
+[01:03] you don't follow the Claude cinematic
+[01:05] universe closely, Fable and Mythos are
+[01:07] the same model, but Mythos is the
+[01:09] unrestricted one reserved for large
+[01:11] companies with budgets for cybersecurity
+[01:13] insurance, and Fable is the one with
+[01:14] guardrails that won't let you research
+[01:16] how to cook up smallpox. Now, we'll get
+[01:18] to the fun stuff in a second, but let's
+[01:20] get the boring stuff out of the way
+[01:21] first. The price is now $8 in and $40
+[01:23] out, which is down from 10.50 from 5.1,
+[01:27] but Anthropic suggests that you should
+[01:28] stick with Opus 5.5 for most work and
+[01:31] only swap to Fable if you really need
+[01:32] it. Before the operating system demo, an
+[01:34] engineer pointed Fable at an empty
+[01:36] folder and let 1,000 sub agents have a
+[01:39] Jensen inspired freak fest for 8 days.
+[01:41] What comes out is a fairly legit OS that
+[01:43] boots on a real laptop with its own
+[01:45] kernel and drivers. And you may remember
+[01:47] back in August when an unreleased Claude
+[01:49] spent 11 days turning Fermat's Last
+[01:51] Theorem into lean code that a computer
+[01:53] could verify. This time, a swarm of
+[01:55] 1,000 Fable agents did it in 30 hours,
+[01:58] and the proof was seven times while Opus
+[02:00] 5.5 crashed out at 26% with the same
+[02:03] setup. And apparently, it's decent at
+[02:05] hardware, too. Working with a circuit
+[02:07] board company called Diode, Fable took a
+[02:09] one paragraph prompt and used it to
+[02:11] design a voice assistant hub, a USB
+[02:13] speaker phone, and a handheld virtual
+[02:15] pet. On the TMBB's, it beats GPT-6 Astra
+[02:18] everywhere Anthropic listed in OpenAI
+[02:20] score. It loses to Gemini 4 Carbon on
+[02:23] business automation, and it more than
+[02:24] doubles Astra on a robotics benchmark
+[02:26] that Anthropic ran itself. But enough
+[02:28] glazing. As you know, there's only one
+[02:30] benchmark I trust. A benchmark that's so
+[02:32] good, it's become the industry standard
+[02:34] by which humanity measures its new God
+[02:36] in a box toys, thorough bench. So I
+[02:39] opened Claude Code and typed those five
+[02:40] famous words to create a realistic
+[02:42] interactive 3D horse with 3.js. Make no
+[02:45] mistakes. Fable cooked for 43 minutes,
+[02:48] and instead of downloading a horse model
+[02:50] like a normal developer, it sculpted the
+[02:51] entire animal out of math using signed
+[02:54] distance fields that get meshed up and
+[02:56] rigged to a skeleton every time the page
+[02:58] loads. It even screenshotted its own
+[02:59] first attempt and roasted it. The mane
+[03:01] is bluish, the tail is stick-like, and
+[03:03] the neck and hind legs are thin. Then it
+[03:05] went back and fixed every one of them.
+[03:07] The end result is the most realistic
+[03:09] horse thorough bench has ever seen. The
+[03:10] skin texture and lighting look great.
+[03:12] Its head follows your mouse cursor, and
+[03:14] you can steer it with the arrow keys or
+[03:16] orbit around it in 3D. It's very cute
+[03:18] and friendly, but gets extremely shy if
+[03:19] you get too close. The transitions
+[03:21] between gates are buttery smooth from a
+[03:23] standstill all the way to a gallop,
+[03:25] although it's a little more awkward when
+[03:26] coming to a full stop. Under the hood,
+[03:28] Opus 5.5's horse had 95,000 vertices and
+[03:31] 35 bones, while Fable's has over 120,000
+[03:35] vertices and 38 bones, and it plants
+[03:37] each hoof with inverse kinematics. So
+[03:39] unlike Kimmy, it's not just warping the
+[03:41] mesh. Fable 5.2 didn't hallucinate a
+[03:44] giant low poly phallus like Gemini, but
+[03:46] it equipped our horse with those rear
+[03:48] leg shock absorbers, which probably come
+[03:50] in very handy when the horse decides to
+[03:52] rear, as you can see here. And the mane
+[03:54] is a little lopsided unless this was a
+[03:55] custom request for his barber. And even
+[03:57] though I told it to make no mistakes, it
+[03:59] admitted the horse is not photo real,
+[04:01] and the eyes are half lidded. And so the
+[04:03] final score for Fable 5.2 on
+[04:05] Throughbench is a 7.77 making it the new
+[04:08] state of the art in horse. And this
+[04:09] really got me thinking the models are
+[04:11] starting to get so good that we should
+[04:13] really be naming the horses they create
+[04:14] to keep track of them. So we've decided
+[04:16] to call this one TypeScript in honor of
+[04:18] Secretariat, the greatest race horse of
+[04:20] all time, who I can only assume would
+[04:21] have loved to type if it had fingers.
+[04:23] And if you want to take him for a ride
+[04:24] yourself, he now lives at typescript.dev
+[04:27] where you can walk, trot, and gallop him
+[04:29] right in your browser. And if you ever
+[04:30] need to run a video in your browser, you
+[04:32] can do so with Mux, the sponsor of
+[04:34] today's video. Their highly customizable
+[04:36] API is by far the easiest way to add
+[04:39] video features to your application.
+[04:40] We've used it for years to host our
+[04:42] courses, but it does a lot more than
+[04:44] just infrastructure. When you upload a
+[04:45] video to Mux, you automatically get
+[04:47] transcripts, storyboards, thumbnails,
+[04:49] and clips. From there, Mux robots gives
+[04:52] you AI workflows that can find key
+[04:54] moments or pick the best thumbnail
+[04:55] without you needing to host a model or
+[04:57] maintain a pipeline. You can automate
+[04:59] all of this with directives where you
+[05:00] define a workflow once and it runs on
+[05:02] every new upload. And robots keep up
+[05:04] with new AI models automatically so you
+[05:07] can safely ignore the next video about
+[05:09] whichever model just changed everything.
+[05:11] Perplexity, Patreon, and many other
+[05:13] prestigious companies all trust Mux, and
+[05:15] you can try robots on your own video in
+[05:17] the dashboard. The free plan includes
+[05:18] 100,000 robots units and delivery
+[05:21] minutes every month, and you get an
+[05:22] extra $50 credit at mux.com/fireship
+[05:26] or at the link below. This has been the
+[05:27] Code Report. Thanks for watching and I
+[05:29] will see you in the next one.
